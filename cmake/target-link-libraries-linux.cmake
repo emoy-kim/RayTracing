@@ -1,0 +1,9 @@
+target_link_libraries(
+    ray_tracing
+        glad
+        glfw3
+        pthread
+        dl
+        X11
+        freeimage
+)

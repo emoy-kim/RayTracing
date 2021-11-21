@@ -1,0 +1,102 @@
+#version 460
+
+layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+layout (rgba8, binding = 0) uniform image2D FinalImage;
+
+#define MAX_SPHERES 32
+
+struct SphereInfo
+{
+   vec3 Center;
+   float Radius;
+};
+uniform SphereInfo Sphere[MAX_SPHERES];
+
+uniform int SphereNum;
+
+const float zero = 0.0f;
+const float one = 1.0f;
+
+vec3 RayOrigin = vec3(zero, zero, zero);
+vec3 RayDirection;
+
+float noise(in vec2 uv)
+{
+   return fract( sin( dot( uv, vec2(12.9898f, 78.233f) ) ) * 43758.5453123f );
+}
+
+bool hitSphere(out float t, out vec3 position, out vec3 normal, in float t_min, in float t_max, in int index)
+{
+   vec3 oc = RayOrigin - Sphere[index].Center;
+   float a = dot( RayDirection, RayDirection );
+   float b = dot( oc, RayDirection );
+   float c = dot( oc, oc ) - Sphere[index].Radius * Sphere[index].Radius;
+   float discriminant = b * b - a * c;
+   if (discriminant >= zero) {
+      t = (-b - sqrt( discriminant )) / a;
+      if (t_min < t && t < t_max) {
+         position = RayOrigin + t * RayDirection;
+         normal = (position - Sphere[index].Center) / Sphere[index].Radius;
+         return true;
+      }
+
+      t = (-b + sqrt( discriminant )) / a;
+      if (t_min < t && t < t_max) {
+         position = RayOrigin + t * RayDirection;
+         normal = (position - Sphere[index].Center) / Sphere[index].Radius;
+         return true;
+      }
+   }
+   return false;
+}
+
+bool hit(out float t, out vec3 position, out vec3 normal, in float t_min, in float t_max)
+{
+   bool hit_anything = false;
+   float closest_so_far = t_max;
+   for (int i = 0; i < SphereNum; ++i) {
+      if (hitSphere( t, position, normal, t_min, closest_so_far, i )) {
+         hit_anything = true;
+         closest_so_far = t;
+      }
+   }
+   return hit_anything;
+}
+
+vec3 getColor()
+{
+   float t;
+   vec3 position, normal;
+   if (hit( t, position, normal, zero, 1E+7f )) return 0.5f * (normal + vec3(one));
+
+   vec3 direction = normalize( RayDirection );
+   t = 0.5f * (direction.y + one);
+   return (one - t) * vec3(one, one, one) + t * vec3(0.5f, 0.7f, one);
+}
+
+void main()
+{
+   int x = int(gl_GlobalInvocationID.x);
+   int y = int(gl_GlobalInvocationID.y);
+   ivec2 image_size = imageSize( FinalImage );
+   if (x >= image_size.x || y >= image_size.y) return;
+
+   const vec3 bottom_left_corner = vec3(-2.0f, -one, -one);
+   const vec3 horizontal = vec3(4.0f, zero, zero);
+   const vec3 vertical = vec3(zero, 2.0f, zero);
+
+   const int sample_num = 100;
+   vec3 color = vec3(zero);
+   vec2 xy = vec2(float(x), float(y));
+   for (int i = 0; i < sample_num; ++i) {
+      float nx = noise( vec2(xy.x, float(i)) );
+      float ny = noise( vec2(xy.y, float(i)) );
+      float u = (xy.x + nx) / float(image_size.x);
+      float v = (xy.y + ny) / float(image_size.y);
+      RayDirection = bottom_left_corner + u * horizontal + v * vertical;
+      color += getColor();
+   }
+   color /= float(sample_num);
+   imageStore( FinalImage, ivec2(x, y), vec4(color, one) );
+}
