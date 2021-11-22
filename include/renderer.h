@@ -31,6 +31,7 @@ private:
    GLFWwindow* Window;
    int FrameWidth;
    int FrameHeight;
+   int FrameIndex;
    glm::ivec2 ClickedPoint;
    std::unique_ptr<CameraGL> MainCamera;
    std::unique_ptr<ShaderGL> Shader;

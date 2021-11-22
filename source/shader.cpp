@@ -113,6 +113,8 @@ void ShaderGL::setComputeShader(const char* compute_shader_path)
 
 void ShaderGL::setRayUniformLocations()
 {
+   addUniformLocation( "FrameIndex" );
+
    Location.SphereNum = glGetUniformLocation( ShaderProgram, "SphereNum" );
 
    Location.Spheres.resize( 32 );

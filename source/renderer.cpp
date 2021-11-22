@@ -1,7 +1,7 @@
 #include "renderer.h"
 
 RendererGL::RendererGL() : 
-   Window( nullptr ), FrameWidth( 2000 ), FrameHeight( 1000 ), ClickedPoint( -1, -1 ),
+   Window( nullptr ), FrameWidth( 2000 ), FrameHeight( 1000 ), FrameIndex( 0 ), ClickedPoint( -1, -1 ),
    MainCamera( std::make_unique<CameraGL>() ), ScreenObject( std::make_unique<ObjectGL>() )
 {
    Renderer = this;
@@ -180,6 +180,7 @@ void RendererGL::drawScene() const
 {
    glUseProgram( Shader->getShaderProgram() );
    Shader->transferShpereUniformsToShader( 2 );
+   Shader->uniform1i( "FrameIndex", FrameIndex );
    glBindImageTexture( 0, FinalCanvas->getColor0TextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8 );
    glDispatchCompute( getGroupSize( FrameWidth ), getGroupSize( FrameHeight ), 1 );
    glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
@@ -234,6 +235,7 @@ void RendererGL::play()
       }
 
       render();
+      FrameIndex++;
 
       glfwSwapBuffers( Window );
       glfwPollEvents();
