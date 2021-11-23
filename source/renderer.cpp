@@ -179,10 +179,10 @@ void RendererGL::registerCallbacks() const
 void RendererGL::setSpheres()
 {
    Spheres = {
-      { 0.5f, glm::vec3(0.0f, 0.0f, -1.0f) },
-      { 100.0f, glm::vec3(0.0f, -100.5f, -1.0f) },
-      { 0.5f, glm::vec3(1.0f, 0.0f, -1.0f) },
-      { 0.5f, glm::vec3(-1.0f, 0.0f, -1.0f) },
+      { Sphere::TYPE::LAMBERTIAN, 0.5f, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.8f, 0.3f, 0.3f) },
+      { Sphere::TYPE::LAMBERTIAN, 100.0f, glm::vec3(0.0f, -100.5f, -1.0f), glm::vec3(0.8f, 0.8f, 0.0f) },
+      { Sphere::TYPE::METAL, 0.5f, glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.8f, 0.6f, 0.2f) },
+      { Sphere::TYPE::METAL, 0.5f, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.8f, 0.8f, 0.8f) }
    };
 }
 

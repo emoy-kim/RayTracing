@@ -5,11 +5,16 @@
 
 struct Sphere
 {
+   enum class TYPE { METAL = 1, LAMBERTIAN };
+
+   TYPE Type;
    float Radius;
    glm::vec3 Center;
+   glm::vec3 Albedo;
 
-   Sphere() : Radius( 0.0f ), Center() {}
-   Sphere(float radius, const glm::vec3& center) : Radius( radius ), Center( center ) {}
+   Sphere() : Type( TYPE::METAL ), Radius( 0.0f ), Center(), Albedo() {}
+   Sphere(TYPE type, float radius, const glm::vec3& center, const glm::vec3& albedo) :
+      Type( type ), Radius( radius ), Center( center ), Albedo( albedo ) {}
 };
 
 class ShaderGL
@@ -17,10 +22,12 @@ class ShaderGL
 public:
    struct SphereLocationSet
    {
+      GLint Type;
       GLint Center;
       GLint Radius;
+      GLint Albedo;
 
-      SphereLocationSet() : Center( 0 ), Radius( 0 ) {}
+      SphereLocationSet() : Type( 0 ), Center( 0 ), Radius( 0 ), Albedo( 0 ) {}
    };
 
    struct LocationSet

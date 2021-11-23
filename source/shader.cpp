@@ -119,8 +119,10 @@ void ShaderGL::setRayUniformLocations()
 
    Location.Spheres.resize( 32 );
    for (int i = 0; i < static_cast<int>(Location.Spheres.size()); ++i) {
+      Location.Spheres[i].Type = glGetUniformLocation( ShaderProgram, std::string("Sphere[" + std::to_string( i ) + "].Type").c_str() );
       Location.Spheres[i].Center = glGetUniformLocation( ShaderProgram, std::string("Sphere[" + std::to_string( i ) + "].Center").c_str() );
       Location.Spheres[i].Radius = glGetUniformLocation( ShaderProgram, std::string("Sphere[" + std::to_string( i ) + "].Radius").c_str() );
+      Location.Spheres[i].Albedo = glGetUniformLocation( ShaderProgram, std::string("Sphere[" + std::to_string( i ) + "].Albedo").c_str() );
    }
 }
 
@@ -147,9 +149,10 @@ void ShaderGL::transferSphereUniformsToShader(const std::vector<Sphere>& spheres
    const auto size = static_cast<int>(spheres.size());
    glProgramUniform1i( ShaderProgram, Location.SphereNum, size );
 
-
    for (int i = 0; i < size; ++i) {
+      glProgramUniform1i( ShaderProgram, Location.Spheres[i].Type, static_cast<int>(spheres[i].Type) );
       glProgramUniform1f( ShaderProgram, Location.Spheres[i].Radius, spheres[i].Radius );
       glProgramUniform3fv( ShaderProgram, Location.Spheres[i].Center, 1, &spheres[i].Center[0] );
+      glProgramUniform3fv( ShaderProgram, Location.Spheres[i].Albedo, 1, &spheres[i].Albedo[0] );
    }
 }
