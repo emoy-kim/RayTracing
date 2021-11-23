@@ -8,6 +8,8 @@ layout (rgba8, binding = 0) uniform image2D FinalImage;
 
 struct SphereInfo
 {
+   int Type; // 1: Metal, 2: Lambertian
+   vec3 Albedo;
    vec3 Center;
    float Radius;
 };
@@ -45,8 +47,10 @@ vec3 getRandomPointInUnitSphere(inout uint seed)
 
 bool hitSphere(
    inout float t,
+   inout int type,
    inout vec3 position,
    inout vec3 normal,
+   inout vec3 albedo,
    in vec3 ray_origin,
    in vec3 ray_direction,
    in float t_min,
@@ -62,6 +66,8 @@ bool hitSphere(
    if (discriminant >= zero) {
       t = (-b - sqrt( discriminant )) / a;
       if (t_min < t && t < t_max) {
+         type = Sphere[index].Type;
+         albedo = Sphere[index].Albedo;
          position = ray_origin + t * ray_direction;
          normal = (position - Sphere[index].Center) / Sphere[index].Radius;
          return true;
@@ -69,6 +75,8 @@ bool hitSphere(
 
       t = (-b + sqrt( discriminant )) / a;
       if (t_min < t && t < t_max) {
+         type = Sphere[index].Type;
+         albedo = Sphere[index].Albedo;
          position = ray_origin + t * ray_direction;
          normal = (position - Sphere[index].Center) / Sphere[index].Radius;
          return true;
@@ -78,19 +86,21 @@ bool hitSphere(
 }
 
 bool hit(
-   inout float t,
+   inout int type,
    inout vec3 position,
    inout vec3 normal,
+   inout vec3 albedo,
    in vec3 ray_origin,
    in vec3 ray_direction,
    in float t_min,
    in float t_max
 )
 {
+   float t;
    bool hit_anything = false;
    float closest_so_far = t_max;
    for (int i = 0; i < SphereNum; ++i) {
-      if (hitSphere( t, position, normal, ray_origin, ray_direction, t_min, closest_so_far, i )) {
+      if (hitSphere( t, type, position, normal, albedo, ray_origin, ray_direction, t_min, closest_so_far, i )) {
          hit_anything = true;
          closest_so_far = t;
       }
@@ -98,22 +108,46 @@ bool hit(
    return hit_anything;
 }
 
-vec3 getColor(inout bool need_to_reflect, inout vec3 ray_origin, inout vec3 ray_direction, inout uint seed)
+bool scatter(
+   inout vec3 ray_origin,
+   inout vec3 ray_direction,
+   inout uint seed,
+   in int type,
+   in vec3 position,
+   in vec3 normal
+)
 {
-   float t;
-   vec3 position, normal;
-   if (hit( t, position, normal, ray_origin, ray_direction, zero, 1E+7f )) {
+   if (type == 1) {
+      vec3 reflected = reflect( normalize( ray_direction ), normal );
       ray_origin = position;
-      ray_direction = normal + getRandomPointInUnitSphere( seed );
-      need_to_reflect = true;
-      //return 0.5f * getColor( need_to_reflect, ray_origin, ray_direction, seed );
-      //return 0.5f * (normal + vec3(one));
-      return vec3(0.5f);
+      ray_direction = reflected + 0.02f * getRandomPointInUnitSphere( seed );
+      return dot( ray_direction, normal ) > zero;
    }
    else {
-      need_to_reflect = false;
+      ray_origin = position;
+      ray_direction = normal + getRandomPointInUnitSphere( seed );
+      return true;
+   }
+}
+
+vec3 getColor(inout bool need_to_repeat, inout vec3 ray_origin, inout vec3 ray_direction, inout uint seed)
+{
+   int type;
+   vec3 position, normal, albedo;
+   if (hit( type, position, normal, albedo, ray_origin, ray_direction, 1e-3f, 1E+7f )) {
+      if (scatter( ray_origin, ray_direction, seed, type, position, normal )) {
+         need_to_repeat = true;
+         return albedo;
+      }
+      else {
+         need_to_repeat = false;
+         return vec3(zero);
+      }
+   }
+   else {
+      need_to_repeat = false;
       vec3 direction = normalize( ray_direction );
-      t = 0.5f * direction.y + 0.5f;
+      float t = 0.5f * direction.y + 0.5f;
       return mix( vec3(one), vec3(0.5f, 0.7f, one), t );
    }
 }
@@ -129,22 +163,23 @@ void main()
    const vec3 horizontal = vec3(4.0f, zero, zero);
    const vec3 vertical = vec3(zero, 2.0f, zero);
 
-   const int sample_num = 3;
+   const int sample_num = 30;
    vec3 color = vec3(zero);
-   vec3 ray_origin = vec3(zero, zero, zero);
-   vec3 ray_direction;
    uint seed = (gl_GlobalInvocationID.x * 1973u + gl_GlobalInvocationID.y * 9277u + uint(FrameIndex) * 26699u) | 1u;
    for (int i = 0; i < sample_num; ++i) {
       float u = (float(x) + getRandomFloat( seed )) / float(image_size.x);
       float v = (float(y) + getRandomFloat( seed )) / float(image_size.y);
-      ray_direction = bottom_left_corner + u * horizontal + v * vertical;
+      vec3 ray_origin = vec3(zero, zero, zero);
+      vec3 ray_direction = bottom_left_corner + u * horizontal + v * vertical;
 
-      bool need_to_reflect = true;
+      int depth = 0;
+      bool need_to_repeat = true;
       vec3 partial_color = vec3(one);
-      while (need_to_reflect) {
-         partial_color = partial_color * getColor( need_to_reflect, ray_origin, ray_direction, seed );
+      while (depth < 50 && need_to_repeat) {
+         partial_color *= getColor( need_to_repeat, ray_origin, ray_direction, seed );
+         depth++;
       }
-      color += partial_color;
+      if (!need_to_repeat) color += partial_color;
    }
    color /= float(sample_num);
    color = sqrt( color );
