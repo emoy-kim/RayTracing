@@ -176,10 +176,20 @@ void RendererGL::registerCallbacks() const
    glfwSetFramebufferSizeCallback( Window, reshapeWrapper );
 }
 
+void RendererGL::setSpheres()
+{
+   Spheres = {
+      { 0.5f, glm::vec3(0.0f, 0.0f, -1.0f) },
+      { 100.0f, glm::vec3(0.0f, -100.5f, -1.0f) },
+      { 0.5f, glm::vec3(1.0f, 0.0f, -1.0f) },
+      { 0.5f, glm::vec3(-1.0f, 0.0f, -1.0f) },
+   };
+}
+
 void RendererGL::drawScene() const
 {
    glUseProgram( Shader->getShaderProgram() );
-   Shader->transferShpereUniformsToShader( 2 );
+   Shader->transferSphereUniformsToShader( Spheres );
    Shader->uniform1i( "FrameIndex", FrameIndex );
    glBindImageTexture( 0, FinalCanvas->getColor0TextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8 );
    glDispatchCompute( getGroupSize( FrameWidth ), getGroupSize( FrameHeight ), 1 );
@@ -221,6 +231,7 @@ void RendererGL::play()
 {
    if (glfwWindowShouldClose( Window )) initialize();
 
+   setSpheres();
    ScreenObject->setSquareObject( GL_TRIANGLES, true );
 
    const double update_time = 0.1;

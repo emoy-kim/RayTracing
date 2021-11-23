@@ -142,17 +142,14 @@ void ShaderGL::transferBasicTransformationUniforms(const glm::mat4& to_world, co
    }
 }
 
-void ShaderGL::transferShpereUniformsToShader(int sphere_num)
+void ShaderGL::transferSphereUniformsToShader(const std::vector<Sphere>& spheres)
 {
-   glProgramUniform1i( ShaderProgram, Location.SphereNum, sphere_num );
+   const auto size = static_cast<int>(spheres.size());
+   glProgramUniform1i( ShaderProgram, Location.SphereNum, size );
 
-   glm::vec3 origin(0.0f, 0.0f, 0.0f);
-   glm::vec3 direction(1.0f, 0.0f, 0.0f);
 
-   std::vector<float> radius = { 0.5f, 100.0f };
-   std::vector<glm::vec3> center = { glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -100.5f, -1.0f) };
-   for (int i = 0; i < sphere_num; ++i) {
-      glProgramUniform1f( ShaderProgram, Location.Spheres[i].Radius, radius[i] );
-      glProgramUniform3fv( ShaderProgram, Location.Spheres[i].Center, 1, &center[i][0] );
+   for (int i = 0; i < size; ++i) {
+      glProgramUniform1f( ShaderProgram, Location.Spheres[i].Radius, spheres[i].Radius );
+      glProgramUniform3fv( ShaderProgram, Location.Spheres[i].Center, 1, &spheres[i].Center[0] );
    }
 }

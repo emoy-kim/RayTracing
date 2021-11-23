@@ -33,6 +33,7 @@ private:
    int FrameHeight;
    int FrameIndex;
    glm::ivec2 ClickedPoint;
+   std::vector<Sphere> Spheres;
    std::unique_ptr<CameraGL> MainCamera;
    std::unique_ptr<ShaderGL> Shader;
    std::unique_ptr<ShaderGL> ScreenShader;
@@ -68,6 +69,7 @@ private:
    }
    static void reshapeWrapper(GLFWwindow* window, int width, int height) { Renderer->reshape( window, width, height ); }
 
+   void setSpheres();
    void drawScene() const;
    void drawScreen() const;
    void render() const;

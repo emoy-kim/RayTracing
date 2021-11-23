@@ -3,6 +3,15 @@
 #include "base.h"
 #include "camera.h"
 
+struct Sphere
+{
+   float Radius;
+   glm::vec3 Center;
+
+   Sphere() : Radius( 0.0f ), Center() {}
+   Sphere(float radius, const glm::vec3& center) : Radius( radius ), Center( center ) {}
+};
+
 class ShaderGL
 {
 public:
@@ -41,7 +50,7 @@ public:
       CustomLocations[name] = glGetUniformLocation( ShaderProgram, name.c_str() );
    }
    void transferBasicTransformationUniforms(const glm::mat4& to_world, const CameraGL* camera, bool use_texture = false) const;
-   void transferShpereUniformsToShader(int sphere_num);
+   void transferSphereUniformsToShader(const std::vector<Sphere>& spheres);
    void uniform1i(const char* name, int value) const
    {
       glProgramUniform1i( ShaderProgram, CustomLocations.find( name )->second, value );
