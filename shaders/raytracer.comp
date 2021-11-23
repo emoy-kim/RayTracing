@@ -36,19 +36,11 @@ float getRandomFloat(inout uint state)
 
 vec3 getRandomPointInUnitSphere(inout uint seed)
 {
-#if 0
    vec3 point = vec3(getRandomFloat( seed ), getRandomFloat( seed ), getRandomFloat( seed ));
    point = point * vec3(2.0f, 6.28318530718f, one) - vec3(one, zero, zero);
    float phi = point.y;
    float r = pow( point.z, one / 3.0f );
    return r * vec3(sqrt( one - point.x * point.x ) * vec2(sin( phi ), cos( phi )), point.x);
-#else
-   vec3 point;
-   do {
-      point = 2.0f * vec3(getRandomFloat( seed ), getRandomFloat( seed ), getRandomFloat( seed )) - vec3(one);
-   } while (dot( point, point ) >= one);
-   return point;
-#endif
 }
 
 bool hitSphere(
@@ -137,15 +129,14 @@ void main()
    const vec3 horizontal = vec3(4.0f, zero, zero);
    const vec3 vertical = vec3(zero, 2.0f, zero);
 
-   const int sample_num = 100;
+   const int sample_num = 3;
    vec3 color = vec3(zero);
-   vec2 xy = vec2(float(x), float(y));
    vec3 ray_origin = vec3(zero, zero, zero);
    vec3 ray_direction;
    uint seed = (gl_GlobalInvocationID.x * 1973u + gl_GlobalInvocationID.y * 9277u + uint(FrameIndex) * 26699u) | 1u;
    for (int i = 0; i < sample_num; ++i) {
-      float u = (xy.x + getRandomFloat( seed )) / float(image_size.x);
-      float v = (xy.y + getRandomFloat( seed )) / float(image_size.y);
+      float u = (float(x) + getRandomFloat( seed )) / float(image_size.x);
+      float v = (float(y) + getRandomFloat( seed )) / float(image_size.y);
       ray_direction = bottom_left_corner + u * horizontal + v * vertical;
 
       bool need_to_reflect = true;
