@@ -33,8 +33,9 @@ float getRandomFloat(inout uint seed)
 
 vec3 getRandomPointInUnitSphere(inout uint seed)
 {
+   const float two_pi = 6.28318530718f;
    vec3 point = vec3(getRandomFloat( seed ), getRandomFloat( seed ), getRandomFloat( seed ));
-   point = point * vec3(2.0f, 6.28318530718f, one) - vec3(one, zero, zero);
+   point = point * vec3(2.0f, two_pi, one) - vec3(one, zero, zero); // x: [-1, 1], y: [0, 2pi], z: [0, 1]
    float phi = point.y;
    float r = pow( point.z, one / 3.0f );
    return r * vec3(sqrt( one - point.x * point.x ) * vec2(sin( phi ), cos( phi )), point.x);

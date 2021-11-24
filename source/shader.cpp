@@ -134,9 +134,8 @@ void ShaderGL::setScreenUniformLocations()
 
 void ShaderGL::transferBasicTransformationUniforms(const glm::mat4& to_world, const CameraGL* camera, bool use_texture) const
 {
-   const glm::mat4 view = camera->getViewMatrix();
    const glm::mat4 projection = camera->getProjectionMatrix();
-   const glm::mat4 model_view_projection = projection * view * to_world;
+   const glm::mat4 model_view_projection = projection * to_world;
    glProgramUniformMatrix4fv( ShaderProgram, Location.ModelViewProjection, 1, GL_FALSE, &model_view_projection[0][0] );
 
    for (const auto& texture : Location.Texture) {
