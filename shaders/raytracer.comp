@@ -53,29 +53,44 @@ bool hitSphere(
    in int index
 )
 {
+   const float epsilon = 1e-4f;
    vec3 oc = ray_origin - Sphere[index].Center;
    float a = dot( ray_direction, ray_direction );
    float b = dot( oc, ray_direction );
    float c = dot( oc, oc ) - Sphere[index].Radius * Sphere[index].Radius;
    float discriminant = b * b - a * c;
-   if (discriminant >= zero) {
-      t = (-b - sqrt( discriminant )) / a;
-      if (t_min < t && t < t_max) {
-         type = Sphere[index].Type;
-         albedo = Sphere[index].Albedo;
-         position = ray_origin + t * ray_direction;
-         normal = (position - Sphere[index].Center) / Sphere[index].Radius;
-         return true;
-      }
 
-      t = (-b + sqrt( discriminant )) / a;
-      if (t_min < t && t < t_max) {
-         type = Sphere[index].Type;
-         albedo = Sphere[index].Albedo;
-         position = ray_origin + t * ray_direction;
-         normal = (position - Sphere[index].Center) / Sphere[index].Radius;
-         return true;
+   float t1 = t_max, t2 = t_max;
+   if (abs( a ) < epsilon) {
+      if (abs( b ) >= epsilon) {
+         t1 = -0.5f * c / b;
       }
+   }
+   else if (abs( discriminant ) < epsilon) {
+      t1 = -b / a;
+   }
+   else if (discriminant > zero) {
+      discriminant = sqrt( discriminant );
+      float n = b >= zero ? -(discriminant + b) : (discriminant - b);
+      t1 = c / n;
+      t2 = n / a;
+   }
+
+   if (t_min < t1 && t1 < t_max) {
+      t = t1;
+      type = Sphere[index].Type;
+      albedo = Sphere[index].Albedo;
+      position = ray_origin + t * ray_direction;
+      normal = (position - Sphere[index].Center) / Sphere[index].Radius;
+      return true;
+   }
+   else if (t_min < t2 && t2 < t_max) {
+      t = t2;
+      type = Sphere[index].Type;
+      albedo = Sphere[index].Albedo;
+      position = ray_origin + t * ray_direction;
+      normal = (position - Sphere[index].Center) / Sphere[index].Radius;
+      return true;
    }
    return false;
 }
