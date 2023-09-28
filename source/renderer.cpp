@@ -145,7 +145,7 @@ void RendererGL::render() const
 
 void RendererGL::update()
 {
-
+   // if animation is needed, update here ...
 }
 
 void RendererGL::play()
