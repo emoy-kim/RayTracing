@@ -170,18 +170,14 @@ void main()
    ivec2 image_size = imageSize( FinalImage );
    if (x >= image_size.x || y >= image_size.y) return;
 
-   const vec3 bottom_left_corner = vec3(-2.0f, -one, -one);
-   const vec3 horizontal = vec3(4.0f, zero, zero);
-   const vec3 vertical = vec3(zero, 2.0f, zero);
-
    const int sample_num = 30;
    vec3 color = vec3(zero);
    uint seed = (gl_GlobalInvocationID.x * 1973u + gl_GlobalInvocationID.y * 9277u + uint(FrameIndex) * 26699u) | 1u;
    for (int i = 0; i < sample_num; ++i) {
-      float u = (float(x) + getRandomFloat( seed )) / float(image_size.x);
-      float v = (float(y) + getRandomFloat( seed )) / float(image_size.y);
-      vec3 ray_origin = vec3(zero, zero, zero);
-      vec3 ray_direction = bottom_left_corner + u * horizontal + v * vertical;
+      float u = (2.0f * (float(x) + getRandomFloat( seed )) - float(image_size.x)) / float(image_size.y);
+      float v = (2.0f * (float(y) + getRandomFloat( seed )) - float(image_size.y)) / float(image_size.y);
+      vec3 ray_origin = vec3(zero);
+      vec3 ray_direction = vec3(u, v, -one) - ray_origin;
 
       int depth = 0;
       bool need_to_repeat = true;
